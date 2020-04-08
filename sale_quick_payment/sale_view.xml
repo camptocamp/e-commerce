@@ -22,7 +22,14 @@
                 </button>
                 <field name="payment_method_id" position="after" >
                     <group name="payments" string="Generated Payments" colspan="4">
-                        <field name="payment_ids" nolabel="1">
+                        <field name="payment_ids" nolabel="1"
+                               domain="[
+                                    ['partner_id', '=', partner_id],
+                                    ['credit', '>', 0],
+                                    ['account_id.type', '=', 'receivable'],
+                                    ['reconcile_id', '=', False],
+                                    ['sale_ids', '=', False],
+                                    ]">
                             <tree string="Payment">
                                 <field name="date"/>
                                 <field name="journal_id"/>
