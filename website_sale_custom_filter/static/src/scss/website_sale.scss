@@ -1,0 +1,13 @@
+ul.collapsible_filters li {
+    width: 100%;
+
+    a {
+        display: inline-block;
+        width: 80%;
+        padding-left: 3px;
+    }
+
+    strong.o_filter_name {
+        cursor: pointer;
+    }
+}
