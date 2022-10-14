@@ -55,9 +55,11 @@ class WebsiteSaleCustomFilter(models.Model):
 class Website(models.Model):
     _inherit = "website"
 
-    def get_filters(self):
+    def get_filters(self, category=False):
         self.ensure_one()
         filter_obj = self.env["website.sale.custom.filter"]
-        # not used ATM, filter by category if specified
-        # -> find a way to use (search_categories_ids) in controller vals
-        return filter_obj.search([("website_ids", "=", self.id)])
+        domain = [("website_ids", "=", self.id)]
+        if category:
+            domain.append(("website_category_ids", "=", category.id))
+        filters = filter_obj.search(domain)
+        return filters

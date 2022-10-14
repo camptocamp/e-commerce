@@ -2,12 +2,22 @@
 # License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class WebsiteSaleCustomFilterValue(models.Model):
     _name = "website.sale.custom.filter.value"
     _description = "website.sale.custom.filter.value"
+
+    @api.depends("value_filter_id", "value_filter_id.domain")
+    def compute_selected_product_templates(self):
+        ProductTemplate = self.env["product.template"]
+        for res in self:
+            res.selected_product_tmpl_ids = False
+            if res.value_filter_id and res.value_filter_id.domain:
+                res.selected_product_tmpl_ids = ProductTemplate.search(
+                    [res.value_filter_id.domain]
+                )
 
     name = fields.Char(required=True, string="Value name")
     sequence = fields.Integer(required=True, default=10)
@@ -24,5 +34,7 @@ class WebsiteSaleCustomFilterValue(models.Model):
     )
     value_filter_id = fields.Many2one("ir.filters", string="Value filter ID")
     selected_product_tmpl_ids = fields.Many2many(
-        "product.template", string="Selected product template"
+        "product.template",
+        string="Selected product template",
+        # compute="compute_selected_product_templates"
     )
