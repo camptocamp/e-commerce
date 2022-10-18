@@ -107,3 +107,27 @@ class WebsiteSale(WebsiteSale):
                 ]
             )
         return super()._get_additional_shop_values(values)
+
+    # override _get_search_options to include chosen filters values
+    def _get_search_options(
+        self,
+        category=None,
+        attrib_values=None,
+        pricelist=None,
+        min_price=0.0,
+        max_price=0.0,
+        conversion_rate=1,
+        **post,
+    ):
+        res = super()._get_search_options(
+            category,
+            attrib_values,
+            pricelist,
+            min_price,
+            max_price,
+            conversion_rate,
+            **post,
+        )
+        res["custom_checkbox_filters"] = self.get_custom_checkbox_filter_values()
+        res["custom_value_filters"] = self.get_custom_range_filter_values()
+        return res
