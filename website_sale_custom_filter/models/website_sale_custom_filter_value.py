@@ -11,11 +11,12 @@ class WebsiteSaleCustomFilterValue(models.Model):
 
     @api.depends("value_filter_id", "value_filter_id.domain")
     def _compute_selected_product_templates(self):
+        ProductTemplate = self.env["product.template"]
         for res in self:
             res.selected_product_tmpl_ids = False
             if res.value_filter_id and res.value_filter_id.domain:
-                res.selected_product_tmpl_ids = (
-                    False  # ProductTemplate.search([res.value_filter_id.domain])
+                res.selected_product_tmpl_ids = ProductTemplate.search(
+                    res.value_filter_id._get_eval_domain()
                 )
 
     name = fields.Char(required=True, string="Value name")
@@ -36,5 +37,5 @@ class WebsiteSaleCustomFilterValue(models.Model):
         "product.template",
         string="Selected product template",
         readonly=True,
-        # compute="_compute_selected_product_templates",
+        compute="_compute_selected_product_templates",
     )

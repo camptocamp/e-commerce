@@ -82,7 +82,7 @@ class ProductTemplate(models.Model):
                 filter_value = CustomFilterValueObj.browse(val_id)
                 selected_products = filter_value.selected_product_tmpl_ids.ids
                 if selected_products:
-                    domain.append(("product_id", "in", selected_products))
+                    domain.append(("id", "in", selected_products))
         if options.get("custom_value_filters", False):
             for f_id, val_id in options["custom_value_filters"].items():
                 filter_id = CustomFilterObj.browse(int(f_id))
