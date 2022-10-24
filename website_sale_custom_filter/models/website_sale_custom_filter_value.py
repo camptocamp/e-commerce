@@ -39,3 +39,7 @@ class WebsiteSaleCustomFilterValue(models.Model):
         readonly=True,
         compute="_compute_selected_product_templates",
     )
+
+    html_color = fields.Char(
+        string="Color", help="Here you can set a specific HTML color.", default=""
+    )

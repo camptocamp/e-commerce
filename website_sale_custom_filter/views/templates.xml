@@ -67,7 +67,7 @@
                                         t-value="custom_checkbox_filters.get(f_id,False)"
                                     />
                                         <t
-                                        t-foreach="f.custom_filter_value_ids"
+                                        t-foreach="f.custom_filter_value_ids.filtered(lambda x: x.display != 'color')"
                                         t-as="v"
                                     >
                                             <div
@@ -87,6 +87,16 @@
                                                 t-field="v.name"
                                             />
                                             </div>
+                                        </t>
+                                        <t
+                                        t-foreach="f.custom_filter_value_ids.filtered(lambda x: x.display == 'color')"
+                                        t-as="v"
+                                    >
+                                            <input
+                                            type="color"
+                                            t-att-id="'%s' % (f.id)"
+                                            t-att-value="'%s' % (v.html_color)"
+                                        />
                                         </t>
                                     </div>
                                 </t>
