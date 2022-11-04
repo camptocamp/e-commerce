@@ -21,9 +21,8 @@ class WebsiteSaleCustomFilter(models.Model):
     )
     filter_collapsed = fields.Boolean()
     filter_type = fields.Selection(
-        [("numerical", "Numerical"), ("value", "Value based")],
+        [("numerical", "Numerical"), ("value", "Value based"), ("color", "Color")],
         default="numerical",
-        string="Display type",
     )
     product_model_id = fields.Many2one(
         "ir.model",
@@ -78,7 +77,7 @@ class ProductTemplate(models.Model):
         CustomFilterValueObj = self.env["website.sale.custom.filter.value"]
 
         if options.get("custom_checkbox_filters", False):
-            for _f_id, val_id in options["custom_checkbox_filters"].items():
+            for _, val_id in options["custom_checkbox_filters"].items():
                 filter_value = CustomFilterValueObj.browse(val_id)
                 selected_products = filter_value.selected_product_tmpl_ids.ids
                 if selected_products:

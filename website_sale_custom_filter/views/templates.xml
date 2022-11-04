@@ -53,9 +53,10 @@
                                     aria-label="Fold"
                                 />
                                 </div>
+                                <!-- checkboxes -->
                                 <t
                                 t-if="f.filter_type == 'value' and f.custom_filter_value_ids"
-                            > <!-- checkboxes -->
+                            >
                                     <div
                                     class="o_custom_filter flex-column"
                                     t-attf-style="#{'display:None' if f.filter_collapsed else 'display: inline-block'}"
@@ -67,7 +68,7 @@
                                         t-value="custom_checkbox_filters.get(f_id,False)"
                                     />
                                         <t
-                                        t-foreach="f.custom_filter_value_ids.filtered(lambda x: x.display != 'color')"
+                                        t-foreach="f.custom_filter_value_ids"
                                         t-as="v"
                                     >
                                             <div
@@ -88,17 +89,34 @@
                                             />
                                             </div>
                                         </t>
-                                        <t
-                                        t-foreach="f.custom_filter_value_ids.filtered(lambda x: x.display == 'color')"
-                                        t-as="v"
-                                    >
-                                            <input
-                                            type="color"
-                                            t-att-id="'%s' % (f.id)"
-                                            t-att-value="'%s' % (v.html_color)"
-                                        />
-                                        </t>
                                     </div>
+                                </t>
+                                <!-- color filter -->
+                                <t
+                                t-if="f.filter_type == 'color' and f.custom_filter_value_ids"
+                            >
+                                        <t t-set="f_id" t-value="'%s' % (f.id)" />
+                                        <t
+                                    t-set="checkbox_filter_values"
+                                    t-value="custom_checkbox_filters.get(f_id,False)"
+                                />
+                                        <t
+                                    t-foreach="f.custom_filter_value_ids"
+                                    t-as="v"
+                                >
+                                            <div class="mb-1">
+                                                <input
+                                            type="checkbox"
+                                            t-att-id="'%s-%s' % (f.id,v.id)"
+                                            t-att-value="'%s-%s' % (f.id,v.id)"
+                                            t-att-checked="'checked' if checkbox_filter_values and v.id in checkbox_filter_values else None"
+                                        />
+                                                <span
+                                            class="color-span"
+                                            t-att-style="'background-color: %s;' % v.html_color"
+                                        />
+                                            </div>
+                                        </t>
                                 </t>
                                 <t
                                 t-if="f.filter_type == 'numerical'"

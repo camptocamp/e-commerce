@@ -18,15 +18,15 @@
                         />
                         <field
                             name="custom_filter_value_ids"
-                            attrs="{'invisible': [('filter_type','not in',('value'))],'required':[('filter_type','in',('value'))]}"
-                        ><!-- TODO: make it editable in modal window -->
+                            attrs="{'invisible': [('filter_type','not in',('value','color'))],'required':[('filter_type','in',('value','color'))]}"
+                        >
                             <tree>
                                 <field name="name" />
-                                <field name="display" />
+                                <!-- <field name="display" /> -->
                                 <field
                                     name="html_color"
                                     widget="color"
-                                    attrs="{'invisible': [('display','not in',('color'))]}"
+                                    attrs="{'invisible': [('parent.filter_type','not in',('color'))]}"
                                 />
                                 <field name="value_filter_id" />
                                 <field name="selected_product_tmpl_ids" />
@@ -48,11 +48,11 @@
                     <group>
                         <field name="name" />
                         <field name="sequence" />
-                        <field name="display" />
+                        <!-- <field name="display" attrs="{'invisible': [('parent.filter_type','in',('color'))]}" /> -->
                         <field
                             name="html_color"
                             widget="color"
-                            attrs="{'invisible': [('display','not in',('color'))]}"
+                            attrs="{'invisible': [('parent.filter_type','not in',('color'))]}"
                         />
                         <field name="value_filter_id" />
                         <field name="selected_product_tmpl_ids" />

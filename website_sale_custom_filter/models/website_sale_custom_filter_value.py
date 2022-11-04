@@ -27,11 +27,11 @@ class WebsiteSaleCustomFilterValue(models.Model):
         required=True,
         string="Filter ID",
     )
-    display = fields.Selection(
-        [("checkbox", "Checkbox"), ("color", "Color")],
-        default="checkbox",
-        string="Display type",
-    )
+    # display = fields.Selection(
+    #     [("checkbox", "Checkbox")],
+    #     default="checkbox",
+    #     string="Display type",
+    # )
     value_filter_id = fields.Many2one("ir.filters", string="Value filter ID")
     selected_product_tmpl_ids = fields.Many2many(
         "product.template",
