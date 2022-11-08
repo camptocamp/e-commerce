@@ -9,7 +9,7 @@ class WebsiteSaleCustomFilterValue(models.Model):
     _name = "website.sale.custom.filter.value"
     _description = "website.sale.custom.filter.value"
 
-    @api.depends("value_filter_id", "value_filter_id.domain")
+    @api.depends("value_filter_id.domain")
     def _compute_selected_product_templates(self):
         ProductTemplate = self.env["product.template"]
         for res in self:

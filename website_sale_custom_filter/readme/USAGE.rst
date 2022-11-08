@@ -1,6 +1,3 @@
-Module allows to define product filters which can be used on website.
-
-
 To create filters go to Website app -> Configuration -> Products
 
 While creating filter you can define:
