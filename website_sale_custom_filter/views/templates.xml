@@ -10,7 +10,10 @@
         <xpath expr="//div[@id='products_grid_before']" position="before">
             <t t-set="enable_left_column" t-value="True" />
             <t t-set="category" t-value="category" />
-            <t t-set="filters" t-value="website.get_filters(category)" />
+            <t
+                t-set="filters"
+                t-value="website.get_website_sale_custom_filters(category)"
+            />
         </xpath>
         <xpath expr="//div[hasclass('products_attributes_filters')]" position="after">
             <div class="products_custom_filters">
@@ -95,28 +98,30 @@
                                 <t
                                 t-if="f.filter_type == 'color' and f.custom_filter_value_ids"
                             >
+                                <div id="custom_filter_widget">
                                         <t t-set="f_id" t-value="'%s' % (f.id)" />
                                         <t
-                                    t-set="checkbox_filter_values"
-                                    t-value="custom_checkbox_filters.get(f_id,False)"
-                                />
+                                        t-set="checkbox_filter_values"
+                                        t-value="custom_checkbox_filters.get(f_id,False)"
+                                    />
                                         <t
-                                    t-foreach="f.custom_filter_value_ids"
-                                    t-as="v"
-                                >
+                                        t-foreach="f.custom_filter_value_ids"
+                                        t-as="v"
+                                    >
                                             <div class="mb-1">
                                                 <input
-                                            type="checkbox"
-                                            t-att-id="'%s-%s' % (f.id,v.id)"
-                                            t-att-value="'%s-%s' % (f.id,v.id)"
-                                            t-att-checked="'checked' if checkbox_filter_values and v.id in checkbox_filter_values else None"
-                                        />
+                                                type="checkbox"
+                                                t-att-id="'%s-%s' % (f.id,v.id)"
+                                                t-att-value="'%s-%s' % (f.id,v.id)"
+                                                t-att-checked="'checked' if checkbox_filter_values and v.id in checkbox_filter_values else None"
+                                            />
                                                 <span
-                                            class="color-span"
-                                            t-att-style="'background-color: %s;' % v.html_color"
-                                        />
+                                                class="color-span"
+                                                t-att-style="'background-color: %s;' % v.html_color"
+                                            />
                                             </div>
                                         </t>
+                                    </div>
                                 </t>
                                 <t
                                 t-if="f.filter_type == 'numerical'"

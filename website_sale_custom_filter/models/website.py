@@ -7,7 +7,7 @@ from odoo import models
 class Website(models.Model):
     _inherit = "website"
 
-    def get_filters(self, category=False):
+    def get_website_sale_custom_filters(self, category=False):
         self.ensure_one()
         filter_obj = self.env["website.sale.custom.filter"]
         domain = [("website_ids", "=", self.id)]

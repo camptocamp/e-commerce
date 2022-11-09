@@ -10,7 +10,7 @@
     "author": "Camptocamp, Odoo Community Association (OCA)",
     "version": "15.0.0.1.0",
     "development_status": "Alpha",
-    "depends": ["website", "sale", "mail", "website_sale", "base", "product"],
+    "depends": ["website", "sale", "mail", "website_sale", "product"],
     "data": [
         "security/ir.model.access.csv",
         "views/website_configuration.xml",
@@ -24,6 +24,6 @@
         ],
     },
     "installable": True,
-    "application": True,
+    "application": False,
     "license": "LGPL-3",
 }

@@ -41,5 +41,5 @@ class WebsiteSaleCustomFilterValue(models.Model):
     )
 
     html_color = fields.Char(
-        string="Color", help="Here you can set a specific HTML color.", default=""
+        string="Color", help="Here you can set a specific HTML color."
     )
