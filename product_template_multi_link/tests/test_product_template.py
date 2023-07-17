@@ -52,3 +52,49 @@ class TestProductTemplate(SavepointCase):
             .name_search("PTL_default_code", args=[("id", "!=", 0)])
         )
         self.assertTrue(product)
+
+    def test_product_template_multi_variants_name_search_with_default_code(self):
+        # Create variants
+        self.product_template.write(
+            {
+                "attribute_line_ids": [
+                    (0, 0, {
+                        "attribute_id": self.env.ref("product.product_attribute_1").id,
+                        "value_ids": [
+                            (6, 0, [
+                                self.env.ref('product.product_attribute_value_1').id,
+                                self.env.ref('product.product_attribute_value_2').id,
+                            ])
+                        ]
+                    })
+                ],
+            }
+        )
+        variant1, variant2 = self.product_template.product_variant_ids
+        variant1.default_code = "PV1_default_code"
+        variant2.default_code = "PV2_default_code"
+        # Odoo std behavior: search with template default code
+        product = self.env["product.template"].name_search("PTL_default_code")
+        self.assertFalse(product)
+        # Odoo std behavior: search with one of the variant default code
+        product = self.env["product.template"].name_search("PV1_default_code")
+        self.assertTrue(product)
+        # Searching with the default_code => the template is not found
+        product = self.env["product.template"].name_search(
+            "PTL_default_code", args=[("id", "!=", 0)]
+        )
+        self.assertFalse(product)
+        # Same but enable the search on default_code => the template is still not found
+        product = (
+            self.env["product.template"]
+            .with_context(name_search_default_code=True)
+            .name_search("PTL_default_code", args=[("id", "!=", 0)])
+        )
+        self.assertFalse(product)
+        # Same but with one of the variant default_code => the template is now found
+        product = (
+            self.env["product.template"]
+            .with_context(name_search_default_code=True)
+            .name_search("PV1_default_code", args=[("id", "!=", 0)])
+        )
+        self.assertTrue(product)

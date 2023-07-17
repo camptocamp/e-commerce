@@ -122,6 +122,7 @@ class ProductTemplate(models.Model):
                     expression.OR(
                         [
                             [("default_code", operator, name)],
+                            [("product_variant_ids.default_code", operator, name)],
                             [(self._rec_name, operator, name)],
                         ]
                     ),
