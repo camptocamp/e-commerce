@@ -8,3 +8,15 @@ class ProductBrand(models.Model):
     _inherit = ["product.brand", "website.published.mixin"]
 
     is_published = fields.Boolean(default=True)
+    published_products_count = fields.Integer(
+        compute="_compute_published_products_count",
+    )
+
+    def _compute_published_products_count(self):
+        for brand in self:
+            brand.published_products_count = self.env["product.template"].search_count(
+                [
+                    ("product_brand_id", "=", brand.id),
+                    ("website_published", "=", True),
+                ]
+            )
