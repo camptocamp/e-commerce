@@ -52,7 +52,7 @@ class WebsiteSale(WebsiteSaleBase):
         can_access = getattr(brand, "can_access_from_current_website", None)
         return can_access() if callable(can_access) else True
 
-    def sitemap_brands(self, env, rule, qs):
+    def sitemap_brands(env, rule, qs):
         website = env["website"].get_current_website()
         if website and website.ecommerce_access == "logged_in" and not qs:
             return
@@ -108,7 +108,7 @@ class WebsiteSale(WebsiteSaleBase):
         search_products=None,
         category=None,
     ):
-        domain = []
+        domain = [("website_published", "=", True)]
         if not products:
             domain = [("id", "in", selected_brand_ids)]
         elif search or category:
@@ -193,8 +193,8 @@ class WebsiteSale(WebsiteSaleBase):
         landing_brand = self._get_brand_from_query(
             request.httprequest.args, fallback_brand
         )
-        # if not self._brand_visible_on_website(landing_brand):
-        # return None
+        if not self._brand_visible_on_website(landing_brand):
+            return request.not_found()
 
         query_args = request.httprequest.args.to_dict(flat=False)
         query_args.pop("brand", None)
@@ -323,8 +323,8 @@ class WebsiteSale(WebsiteSaleBase):
 
         if not request.website.has_ecommerce_access():
             return request.redirect(f"/web/login?redirect={request.httprequest.path}")
-        # if not self._brand_visible_on_website(brand):
-        # raise NotFound()
+        if not self._brand_visible_on_website(brand):
+            return request.not_found()
 
         self._set_current_brand(brand)
         request.update_context(brand_ids=[brand.id])
