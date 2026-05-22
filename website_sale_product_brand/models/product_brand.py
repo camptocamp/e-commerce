@@ -1,6 +1,7 @@
 # Copyright 2020 Tecnativa - David Vidal
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html)
 from odoo import api, fields, models
+from odoo.fields import Domain
 
 
 class ProductBrand(models.Model):
@@ -9,6 +10,7 @@ class ProductBrand(models.Model):
         "product.brand",
         "image.mixin",
         "website.published.mixin",
+        "website.searchable.mixin",
     ]
 
     cover_image = fields.Image(max_width=2560, max_height=2560)
@@ -47,3 +49,57 @@ class ProductBrand(models.Model):
                     ("website_published", "=", True),
                 ]
             )
+
+    @api.model
+    def _search_get_detail(self, website, order, options):
+        with_image = options.get("displayImage")
+        with_description = options.get("displayDescription")
+        domains = [[("website_published", "=", True)]]
+        if "website_id" in self._fields:
+            domains.append(
+                Domain.OR(
+                    [
+                        Domain("website_id", "=", False),
+                        Domain("website_id", "=", website.id),
+                    ]
+                )
+            )
+
+        search_fields = ["name"]
+        fetch_fields = ["id", "name", "website_url"]
+        mapping = {
+            "name": {"name": "name", "type": "text", "match": True},
+            "website_url": {"name": "website_url", "type": "text", "truncate": False},
+        }
+        if with_description:
+            search_fields.append("website_description")
+            fetch_fields.append("website_description")
+            mapping["description"] = {
+                "name": "website_description",
+                "type": "text",
+                "match": True,
+                "html": True,
+            }
+        if with_image:
+            mapping["image_url"] = {"name": "image_url", "type": "html"}
+
+        return {
+            "model": "product.brand",
+            "base_domain": domains,
+            "search_fields": search_fields,
+            "fetch_fields": fetch_fields,
+            "mapping": mapping,
+            "icon": "fa-tags",
+            "order": "name desc, id desc"
+            if "name desc" in order
+            else "name asc, id desc",
+        }
+
+    def _search_render_results(self, fetch_fields, mapping, icon, limit):
+        results_data = super()._search_render_results(
+            fetch_fields, mapping, icon, limit
+        )
+        if "image_url" in mapping:
+            for data in results_data:
+                data["image_url"] = f"/web/image/product.brand/{data['id']}/image_128"
+        return results_data
