@@ -11,6 +11,7 @@ class ProductBrand(models.Model):
         "image.mixin",
         "website.published.mixin",
         "website.searchable.mixin",
+        "website.seo.metadata",
     ]
 
     cover_image = fields.Image(max_width=2560, max_height=2560)
