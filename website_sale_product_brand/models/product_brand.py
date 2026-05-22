@@ -91,6 +91,9 @@ class ProductBrand(models.Model):
             "fetch_fields": fetch_fields,
             "mapping": mapping,
             "icon": "fa-tags",
+            "order": "name desc, id desc"
+            if "name desc" in order
+            else "name asc, id desc",
         }
 
     def _search_render_results(self, fetch_fields, mapping, icon, limit):
