@@ -3,6 +3,7 @@ from unittest.mock import patch
 from werkzeug.datastructures import OrderedMultiDict
 from werkzeug.wrappers import Response
 
+from odoo import Command
 from odoo.http import request
 from odoo.tests import HttpCase, tagged
 
@@ -31,7 +32,7 @@ class TestWebsiteSaleFilterBrandHttpCase(HttpCase):
             {
                 "name": "Tour Product",
                 "sale_ok": True,
-                "is_published": True,
+                "website_published": True,
                 "list_price": 10.0,
                 "product_brand_id": cls.brand.id,
             }
@@ -46,7 +47,7 @@ class TestWebsiteSaleFilterBrandHttpCase(HttpCase):
                     "login": login,
                     "password": login,
                     "email": "portal_brand@example.com",
-                    "group_ids": [(6, 0, [cls.env.ref("base.group_portal").id])],
+                    "group_ids": [Command.set([cls.env.ref("base.group_portal").id])],
                 }
             )
         )
@@ -74,7 +75,7 @@ class WebsiteSale(BaseCommon):
             {
                 "name": "Test Product",
                 "sale_ok": True,
-                "is_published": True,
+                "website_published": True,
                 "product_brand_id": cls.brand.id,
             }
         )
