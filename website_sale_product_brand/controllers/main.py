@@ -49,8 +49,7 @@ class WebsiteSale(WebsiteSaleBase):
     def _brand_visible_on_website(self, brand):
         if not (brand and brand.website_published):
             return False
-        can_access = getattr(brand, "can_access_from_current_website", None)
-        return can_access() if callable(can_access) else True
+        return brand.can_access_from_current_website()
 
     def sitemap_brands(env, rule, qs):
         website = env["website"].get_current_website()
@@ -59,14 +58,7 @@ class WebsiteSale(WebsiteSaleBase):
 
         product_brand_model = env["product.brand"]
         domain = sitemap_qs2dom(qs, f"{SHOP_PATH}/brand", product_brand_model._rec_name)
-        domain &= Domain("website_published", "=", True)
-        if "website_id" in product_brand_model._fields:
-            domain &= Domain.OR(
-                [
-                    Domain("website_id", "=", False),
-                    Domain("website_id", "=", website.id),
-                ]
-            )
+        domain &= product_brand_model._website_public_domain(website=website)
         for brand in product_brand_model.search(domain):
             loc = f"{SHOP_PATH}/brand/{env['ir.http']._slug(brand)}"
             if not qs or qs.lower() in loc:
@@ -108,19 +100,15 @@ class WebsiteSale(WebsiteSaleBase):
         search_products=None,
         category=None,
     ):
-        domain = [("website_published", "=", True)]
+        brand_model = request.env["product.brand"].sudo()
+        domain = brand_model._website_public_domain()
         if not products:
-            domain = [("id", "in", selected_brand_ids)]
+            domain = Domain.AND([domain, [("id", "in", selected_brand_ids)]])
         elif search or category:
-            domain = [("product_ids", "in", search_products.ids)]
-        return (
-            request.env["product.brand"]
-            .sudo()
-            .search(domain)
-            .filtered(
-                lambda x: x.published_products_count > 0
-                or x.show_without_published_products
-            )
+            domain = Domain.AND([domain, [("product_ids", "in", search_products.ids)]])
+        return brand_model.search(domain).filtered(
+            lambda x: x.published_products_count > 0
+            or x.show_without_published_products
         )
 
     def _get_shop_domain_no_brands(
@@ -354,12 +342,12 @@ class WebsiteSale(WebsiteSaleBase):
     # Method to get the brands.
     @http.route(["/page/product_brands"], type="http", auth="public", website=True)
     def product_brands(self, **post):
-        b_obj = request.env["product.brand"]
-        domain = [("website_published", "=", True)]
+        product_brand = request.env["product.brand"]
+        domain = product_brand._website_public_domain()
         if post.get("search"):
-            domain += [("name", "ilike", post.get("search"))]
+            domain = Domain.AND([domain, [("name", "ilike", post.get("search"))]])
         brand_rec = (
-            b_obj.sudo()
+            product_brand.sudo()
             .search(domain)
             .filtered(
                 lambda x: x.published_products_count > 0

@@ -12,6 +12,12 @@ class TestWebsiteSaleBrandLandingHttp(HttpCase):
         super().setUpClass()
         cls.Brand = cls.env["product.brand"]
         cls.Product = cls.env["product.template"]
+        cls.other_website = cls.env["website"].create(
+            {
+                "name": "Other Website",
+                "company_id": cls.env.company.id,
+            }
+        )
         cls.public_category = cls.env["product.public.category"].create(
             {"name": "Brand Landing"}
         )
@@ -27,6 +33,13 @@ class TestWebsiteSaleBrandLandingHttp(HttpCase):
             {
                 "name": "Hidden Brand",
                 "website_published": False,
+            }
+        )
+        cls.brand_other_website = cls.Brand.create(
+            {
+                "name": "Other Website Brand",
+                "website_published": True,
+                "website_id": cls.other_website.id,
             }
         )
 
@@ -66,6 +79,11 @@ class TestWebsiteSaleBrandLandingHttp(HttpCase):
     def test_non_visible_brand_returns_404(self):
         self.authenticate(None, None)
         response = self.url_open(self.brand_hidden.website_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_brand_from_other_website_returns_404(self):
+        self.authenticate(None, None)
+        response = self.url_open(self.brand_other_website.website_url)
         self.assertEqual(response.status_code, 404)
 
     def test_shop_brands_with_brand_param_uses_landing_page(self):

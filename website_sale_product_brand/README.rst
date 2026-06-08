@@ -38,6 +38,13 @@ on website. It will allow you to filter product based on its brand.
 It also adds brand landing pages under ``/shop/brand/<brand-slug>`` with
 dedicated header and footer content per brand.
 
+The module is multi-website aware: brand landing pages, brand listings,
+the website search index, and the sitemap only expose brands that belong
+to the current website (or are global). In the backend, the brand form
+and list view expose the Website field for users in
+``website.group_multi_website`` so brands can be assigned to a specific
+website.
+
 While shopping online, we have seen various eShops having a feature to
 shop by brands which ODOO does not yet provide officially. Website Sale
 Product Brand fills the gap at certain extent and by providing basic
@@ -57,6 +64,11 @@ In order to hide brands from the e-commerce:
 1. Go to *Website > eCommerce > Product brands*
 2. Click on the brand you want to unpublish.
 3. Click on the *Website published* smart button.
+
+If your database has multiple websites enabled, you can also set the
+brand's Website field on the product brand form to scope the brand to a
+specific website. The field is shown to users in the
+``website.group_multi_website`` group.
 
 Usage
 =====
@@ -89,6 +101,11 @@ In the brand form view, you can configure:
    - Header website description block
    - Footer website description block
    - Header alignment and visibility of brand name/description
+
+If your database uses multiple websites, each brand can be assigned to a
+specific website from the product brand form and list views. Brands are
+only shown on the website they belong to, while global brands remain
+available on every website.
 
 Bug Tracker
 ===========

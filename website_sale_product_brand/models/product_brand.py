@@ -9,7 +9,7 @@ class ProductBrand(models.Model):
     _inherit = [
         "product.brand",
         "image.mixin",
-        "website.published.mixin",
+        "website.published.multi.mixin",
         "website.searchable.mixin",
         "website.seo.metadata",
     ]
@@ -52,20 +52,27 @@ class ProductBrand(models.Model):
             )
 
     @api.model
+    def _website_scope_domain(self, website=None):
+        website = website or self.env["website"].get_current_website()
+        website_id = website.id if website else False
+        return Domain.OR(
+            [
+                Domain("website_id", "=", False),
+                Domain("website_id", "=", website_id),
+            ]
+        )
+
+    @api.model
+    def _website_public_domain(self, website=None):
+        domain = Domain("website_published", "=", True)
+        domain &= self._website_scope_domain(website=website)
+        return domain
+
+    @api.model
     def _search_get_detail(self, website, order, options):
         with_image = options.get("displayImage")
         with_description = options.get("displayDescription")
-        domains = [[("website_published", "=", True)]]
-        if "website_id" in self._fields:
-            domains.append(
-                Domain.OR(
-                    [
-                        Domain("website_id", "=", False),
-                        Domain("website_id", "=", website.id),
-                    ]
-                )
-            )
-
+        domains = [self._website_public_domain(website=website)]
         search_fields = ["name"]
         fetch_fields = ["id", "name", "website_url"]
         mapping = {

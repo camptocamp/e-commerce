@@ -26,3 +26,8 @@ brand form view, you can configure:
 > - Header website description block
 > - Footer website description block
 > - Header alignment and visibility of brand name/description
+
+If your database uses multiple websites, each brand can be assigned to a
+specific website from the product brand form and list views. Brands are
+only shown on the website they belong to, while global brands remain
+available on every website.

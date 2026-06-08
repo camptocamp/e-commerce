@@ -379,6 +379,12 @@ ul.auto-toc {
 on website. It will allow you to filter product based on its brand.</p>
 <p>It also adds brand landing pages under <tt class="docutils literal"><span class="pre">/shop/brand/&lt;brand-slug&gt;</span></tt> with
 dedicated header and footer content per brand.</p>
+<p>The module is multi-website aware: brand landing pages, brand listings,
+the website search index, and the sitemap only expose brands that belong
+to the current website (or are global). In the backend, the brand form
+and list view expose the Website field for users in
+<tt class="docutils literal">website.group_multi_website</tt> so brands can be assigned to a specific
+website.</p>
 <p>While shopping online, we have seen various eShops having a feature to
 shop by brands which ODOO does not yet provide officially. Website Sale
 Product Brand fills the gap at certain extent and by providing basic
@@ -406,6 +412,10 @@ products he/she wants to purchase.</p>
 <li>Click on the brand you want to unpublish.</li>
 <li>Click on the <em>Website published</em> smart button.</li>
 </ol>
+<p>If your database has multiple websites enabled, you can also set the
+brand’s Website field on the product brand form to scope the brand to a
+specific website. The field is shown to users in the
+<tt class="docutils literal">website.group_multi_website</tt> group.</p>
 </div>
 <div class="section" id="usage">
 <h2><a class="toc-backref" href="#toc-entry-2">Usage</a></h2>
@@ -438,6 +448,10 @@ In the brand form view, you can configure:</p>
 <li>Header alignment and visibility of brand name/description</li>
 </ul>
 </blockquote>
+<p>If your database uses multiple websites, each brand can be assigned to a
+specific website from the product brand form and list views. Brands are
+only shown on the website they belong to, while global brands remain
+available on every website.</p>
 </div>
 <div class="section" id="bug-tracker">
 <h2><a class="toc-backref" href="#toc-entry-3">Bug Tracker</a></h2>
