@@ -86,4 +86,26 @@
             <attribute name="t-att-data-partner-type">contact.type</attribute>
         </xpath>
     </template>
+
+    <!--
+        Add a dedicated badge for one_time_delivery contacts so they are easy to
+        spot among the standard delivery / billing addresses.
+    -->
+    <template
+        id="address_card_one_time_delivery_badge"
+        name="Address Card - One-Time Delivery Badge"
+        inherit_id="portal.address_card"
+    >
+        <xpath
+            expr="//span[@t-elif=&quot;contact.type=='invoice'&quot;]"
+            position="after"
+        >
+            <span
+                t-elif="contact.type=='one_time_delivery'"
+                t-att-class=" badge_classes "
+            >
+                One-Time Delivery
+            </span>
+        </xpath>
+    </template>
 </odoo>
