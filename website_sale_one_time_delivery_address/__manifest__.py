@@ -13,6 +13,7 @@
     "application": False,
     "depends": ["sale_stock", "website_sale"],
     "data": [
+        "views/res_partner_views.xml",
         "views/templates.xml",
     ],
     "assets": {

@@ -45,6 +45,9 @@ billing partner.
 
 Main behavior:
 
+- adds an *Allow Drop-shipping* flag on the customer that gates the
+  whole flow: the one-time delivery option is only shown for customers
+  that allow drop-shipping
 - adds a one-time delivery toggle to the checkout page
 - creates checkout delivery contacts with type ``one_time_delivery``
 - keeps the invoice address on the reseller
@@ -60,10 +63,18 @@ Main behavior:
 Configuration
 =============
 
-No additional configuration is required.
+The one-time delivery flow is only offered to customers that are allowed
+to drop-ship.
 
-The feature is available on the website checkout as soon as the module
-is installed.
+To enable it for a customer:
+
+1. Open the customer's contact form.
+2. Tick *Allow Drop-shipping*.
+
+The one-time delivery option then appears on the website checkout for
+orders placed by that customer (the flag is read from the customer's
+commercial entity, so it applies to all of its contacts). Customers
+without the flag never see the option.
 
 Usage
 =====
@@ -93,15 +104,11 @@ instead.
 Automatic archiving
 -------------------
 
-One-time delivery contacts are temporary by nature. A scheduled garbage
-collection routine (``@api.autovacuum``, run by the daily *Base:
-Auto-vacuum internal data* cron) automatically archives a
-``one_time_delivery`` contact once every sale order it ships to is
-finished: all related stock pickings have reached a terminal state
-(``done`` or ``cancel``). This covers delivered orders as well as fully
-cancelled ones. Contacts that are still awaiting a delivery, or that are
-not linked to any order, are left untouched. Archiving is reversible and
-preserves the order history.
+One-time delivery contacts are temporary by nature. As soon as the sale
+order is confirmed, its ``one_time_delivery`` shipping contact is
+automatically archived so it stops cluttering the address book.
+Archiving is reversible and the contact remains readable on the related
+stock pickings and order history.
 
 Bug Tracker
 ===========

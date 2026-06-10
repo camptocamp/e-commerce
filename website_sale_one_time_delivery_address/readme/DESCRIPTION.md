@@ -11,6 +11,9 @@ billing partner.
 
 Main behavior:
 
+- adds an *Allow Drop-shipping* flag on the customer that gates the whole
+  flow: the one-time delivery option is only shown for customers that
+  allow drop-shipping
 - adds a one-time delivery toggle to the checkout page
 - creates checkout delivery contacts with type `one_time_delivery`
 - keeps the invoice address on the reseller

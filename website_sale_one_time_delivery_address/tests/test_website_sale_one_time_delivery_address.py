@@ -1,3 +1,5 @@
+from werkzeug.exceptions import Forbidden
+
 from odoo.fields import Command
 from odoo.tests import tagged
 
@@ -38,6 +40,13 @@ class TestWebsiteSaleOneTimeDeliveryAddress(WebsiteSaleCommon):
         )
         cls.reseller = cls.reseller_user.partner_id
         cls.reseller_env = cls.env(user=cls.reseller_user)
+        # The one-time delivery flow is only available to customers that allow
+        # drop-shipping; enable it on every partner used as a cart owner.
+        (
+            cls.reseller.commercial_partner_id
+            | cls.partner.commercial_partner_id
+            | cls.env.user.partner_id.commercial_partner_id
+        ).allow_dropship = True
         # The cart is rebound to ``request.website.env.user`` by
         # ``_get_and_cache_current_cart``; the website record must therefore run
         # in the reseller env, not the superuser one, for the cart to stay on
@@ -206,6 +215,53 @@ class TestWebsiteSaleOneTimeDeliveryAddress(WebsiteSaleCommon):
         self.assertFalse(so.one_time_delivery)
 
     # ------------------------------------------------------------------
+    # allow_dropship gate
+    # ------------------------------------------------------------------
+
+    def test_rpc_endpoint_ignores_toggle_without_allow_dropship(self):
+        """The RPC cannot enable one-time mode for a non drop-ship customer."""
+        self.reseller.commercial_partner_id.allow_dropship = False
+        so = self._create_reseller_so()
+
+        with MockRequest(
+            self.reseller_env, website=self.reseller_website, sale_order_id=so.id
+        ):
+            self.controller.shop_update_one_time_delivery(one_time_delivery=True)
+
+        self.assertFalse(
+            so.one_time_delivery,
+            "One-time mode must stay off for customers without allow_dropship",
+        )
+
+    def test_update_address_one_time_forbidden_without_allow_dropship(self):
+        """Selecting a one_time_delivery address is rejected without allow_dropship."""
+        self.reseller.commercial_partner_id.allow_dropship = False
+        so = self._create_reseller_so()
+        one_time = self.env["res.partner"].create(
+            {
+                "name": "Saved One-Time",
+                "parent_id": self.reseller.commercial_partner_id.id,
+                "type": "one_time_delivery",
+            }
+        )
+
+        with MockRequest(
+            self.reseller_env, website=self.reseller_website, sale_order_id=so.id
+        ):
+            with self.assertRaises(Forbidden):
+                self.controller.shop_update_address(
+                    partner_id=one_time.id, address_type="delivery"
+                )
+
+    def test_checkout_values_expose_allow_dropship(self):
+        """The order exposes the customer's allow_dropship flag via a related field."""
+        so = self._create_reseller_so()
+        self.assertTrue(so.allow_dropship)
+
+        self.reseller.commercial_partner_id.allow_dropship = False
+        self.assertFalse(so.allow_dropship)
+
+    # ------------------------------------------------------------------
     # Template context
     # ------------------------------------------------------------------
 
@@ -253,7 +309,7 @@ class TestWebsiteSaleOneTimeDeliveryAddress(WebsiteSaleCommon):
         )
 
     # ------------------------------------------------------------------
-    # Autovacuum – archive completed one-time delivery contacts
+    # Archive one-time delivery contacts on order confirmation
     # ------------------------------------------------------------------
 
     def _make_one_time_partner(self):
@@ -265,76 +321,35 @@ class TestWebsiteSaleOneTimeDeliveryAddress(WebsiteSaleCommon):
             }
         )
 
-    def _deliver(self, order):
-        """Confirm the order and validate every generated picking as done."""
-        order.action_confirm()
-        for picking in order.picking_ids:
-            for move in picking.move_ids:
-                move.quantity = move.product_uom_qty
-                move.picked = True
-            picking.button_validate()
-
-    def test_gc_archives_partner_when_delivery_done(self):
-        """A one_time_delivery partner is archived once its picking is done."""
+    def test_confirm_archives_one_time_delivery_partner(self):
+        """Confirming an order archives its one_time_delivery shipping contact."""
         partner = self._make_one_time_partner()
         order = self._create_so(partner_shipping_id=partner.id)
-        self._deliver(order)
-        self.assertEqual(set(order.picking_ids.mapped("state")), {"done"})
 
-        self.env["res.partner"]._gc_archive_one_time_delivery_partners()
+        order.action_confirm()
 
         self.assertFalse(
             partner.active,
-            "Partner should be archived when all related pickings are done",
+            "One-time delivery contact must be archived once the order is confirmed",
         )
 
-    def test_gc_archives_partner_when_delivery_cancelled(self):
-        """A one_time_delivery partner is archived when all pickings are cancelled.
-
-        A contact whose every delivery was cancelled will never receive anything,
-        so it is dead weight and must be cleaned up just like a delivered one.
-        """
+    def test_confirm_keeps_partner_readable_on_picking(self):
+        """The archived contact remains the delivery address of the picking."""
         partner = self._make_one_time_partner()
         order = self._create_so(partner_shipping_id=partner.id)
+
         order.action_confirm()
-        order.picking_ids.action_cancel()
-        self.assertEqual(set(order.picking_ids.mapped("state")), {"cancel"})
 
-        self.env["res.partner"]._gc_archive_one_time_delivery_partners()
-
-        self.assertFalse(
-            partner.active,
-            "Partner should be archived when all related pickings are terminal",
-        )
-
-    def test_gc_keeps_partner_when_delivery_pending(self):
-        """A one_time_delivery partner with a pending picking is not archived."""
-        partner = self._make_one_time_partner()
-        order = self._create_so(partner_shipping_id=partner.id)
-        order.action_confirm()
+        self.assertFalse(partner.active)
         self.assertTrue(order.picking_ids)
-        self.assertNotIn("done", order.picking_ids.mapped("state"))
-
-        self.env["res.partner"]._gc_archive_one_time_delivery_partners()
-
-        self.assertTrue(
-            partner.active,
-            "Partner must stay active while a related picking is not done",
+        self.assertEqual(
+            order.picking_ids.partner_id,
+            partner,
+            "An archived one-time contact must stay readable on its picking",
         )
 
-    def test_gc_keeps_partner_without_order(self):
-        """A one_time_delivery partner not linked to any order is not archived."""
-        partner = self._make_one_time_partner()
-
-        self.env["res.partner"]._gc_archive_one_time_delivery_partners()
-
-        self.assertTrue(
-            partner.active,
-            "Partner without any related order must not be archived",
-        )
-
-    def test_gc_ignores_regular_partners(self):
-        """Standard delivery partners are never archived by this routine."""
+    def test_confirm_ignores_regular_partners(self):
+        """Standard delivery partners are never archived on confirmation."""
         partner = self.env["res.partner"].create(
             {
                 "name": "Regular Delivery",
@@ -343,14 +358,12 @@ class TestWebsiteSaleOneTimeDeliveryAddress(WebsiteSaleCommon):
             }
         )
         order = self._create_so(partner_shipping_id=partner.id)
-        self._deliver(order)
-        self.assertEqual(set(order.picking_ids.mapped("state")), {"done"})
 
-        self.env["res.partner"]._gc_archive_one_time_delivery_partners()
+        order.action_confirm()
 
         self.assertTrue(
             partner.active,
-            "Only one_time_delivery partners may be archived by the routine",
+            "Only one_time_delivery partners may be archived on confirmation",
         )
 
     # ------------------------------------------------------------------

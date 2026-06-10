@@ -16,6 +16,7 @@
             position="before"
         >
             <t
+                t-if="order.allow_dropship"
                 t-call="website_sale_one_time_delivery_address.one_time_delivery_section"
             >
                 <t t-set="one_time_delivery" t-value="order.one_time_delivery" />

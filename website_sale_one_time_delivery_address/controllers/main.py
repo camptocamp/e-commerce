@@ -26,12 +26,10 @@ class WebsiteSaleOneTimeDeliveryAddress(WebsiteSale):
             ResPartner = request.env["res.partner"].sudo()
             partner_sudo = ResPartner.browse(int(partner_id)).exists()
             if partner_sudo.type == "one_time_delivery":
-                allowed_ids = ResPartner._search(
-                    [("id", "child_of", order_sudo.partner_id.commercial_partner_id.id)]
-                )
                 if (
-                    partner_sudo.id not in allowed_ids
-                    and partner_sudo != order_sudo.partner_shipping_id
+                    not order_sudo.allow_dropship
+                    or partner_sudo.commercial_partner_id
+                    != order_sudo.partner_id.commercial_partner_id
                 ):
                     raise Forbidden()
                 order_sudo.one_time_delivery = True
@@ -109,9 +107,16 @@ class WebsiteSaleOneTimeDeliveryAddress(WebsiteSale):
         methods=["POST"],
     )
     def shop_update_one_time_delivery(self, one_time_delivery=False, **kwargs):
-        """Toggle one-time delivery mode on the current cart."""
+        """Toggle one-time delivery mode on the current cart.
+
+        The mode can only be enabled for customers that allow drop-shipping;
+        for any other customer the flag is forced to False, regardless of what
+        the request asks for.
+        """
         order_sudo = request.cart
         if not order_sudo:
             return {}
-        order_sudo.one_time_delivery = bool(one_time_delivery)
+        order_sudo.one_time_delivery = (
+            bool(one_time_delivery) and order_sudo.allow_dropship
+        )
         return {}

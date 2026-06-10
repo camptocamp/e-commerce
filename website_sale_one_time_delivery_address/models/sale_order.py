@@ -14,3 +14,22 @@ class SaleOrder(models.Model):
             "book and is useful for reseller orders shipped to an end customer."
         ),
     )
+    allow_dropship = fields.Boolean(
+        related="partner_id.commercial_partner_id.allow_dropship",
+    )
+
+    def action_confirm(self):
+        """Archive one-time delivery contacts once the order is confirmed.
+
+        A one_time_delivery contact is a temporary recipient that is no longer
+        needed for editing once the order is placed. Archiving (not deleting)
+        keeps it out of the address book while remaining readable on the
+        related pickings and order history.
+        """
+        res = super().action_confirm()
+        one_time_partners = self.partner_shipping_id.filtered(
+            lambda partner: partner.type == "one_time_delivery"
+        )
+        if one_time_partners:
+            one_time_partners.action_archive()
+        return res

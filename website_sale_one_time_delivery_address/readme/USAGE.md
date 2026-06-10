@@ -22,11 +22,8 @@ instead.
 
 ## Automatic archiving
 
-One-time delivery contacts are temporary by nature. A scheduled garbage
-collection routine (`@api.autovacuum`, run by the daily *Base: Auto-vacuum
-internal data* cron) automatically archives a `one_time_delivery` contact
-once every sale order it ships to is finished: all related stock pickings
-have reached a terminal state (`done` or `cancel`). This covers delivered
-orders as well as fully cancelled ones. Contacts that are still awaiting a
-delivery, or that are not linked to any order, are left untouched.
-Archiving is reversible and preserves the order history.
+One-time delivery contacts are temporary by nature. As soon as the sale
+order is confirmed, its `one_time_delivery` shipping contact is
+automatically archived so it stops cluttering the address book. Archiving
+is reversible and the contact remains readable on the related stock
+pickings and order history.

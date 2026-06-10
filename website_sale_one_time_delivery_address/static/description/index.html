@@ -385,6 +385,9 @@ recipient contact on the sale order while preserving the reseller as the
 billing partner.</p>
 <p>Main behavior:</p>
 <ul class="simple">
+<li>adds an <em>Allow Drop-shipping</em> flag on the customer that gates the
+whole flow: the one-time delivery option is only shown for customers
+that allow drop-shipping</li>
 <li>adds a one-time delivery toggle to the checkout page</li>
 <li>creates checkout delivery contacts with type <tt class="docutils literal">one_time_delivery</tt></li>
 <li>keeps the invoice address on the reseller</li>
@@ -410,9 +413,17 @@ address list</li>
 </div>
 <div class="section" id="configuration">
 <h2><a class="toc-backref" href="#toc-entry-1">Configuration</a></h2>
-<p>No additional configuration is required.</p>
-<p>The feature is available on the website checkout as soon as the module
-is installed.</p>
+<p>The one-time delivery flow is only offered to customers that are allowed
+to drop-ship.</p>
+<p>To enable it for a customer:</p>
+<ol class="arabic simple">
+<li>Open the customer’s contact form.</li>
+<li>Tick <em>Allow Drop-shipping</em>.</li>
+</ol>
+<p>The one-time delivery option then appears on the website checkout for
+orders placed by that customer (the flag is read from the customer’s
+commercial entity, so it applies to all of its contacts). Customers
+without the flag never see the option.</p>
 </div>
 <div class="section" id="usage">
 <h2><a class="toc-backref" href="#toc-entry-2">Usage</a></h2>
@@ -439,15 +450,11 @@ address behavior is kept and a regular <tt class="docutils literal">delivery</tt
 instead.</p>
 <div class="section" id="automatic-archiving">
 <h3><a class="toc-backref" href="#toc-entry-3">Automatic archiving</a></h3>
-<p>One-time delivery contacts are temporary by nature. A scheduled garbage
-collection routine (<tt class="docutils literal">&#64;api.autovacuum</tt>, run by the daily <em>Base:
-Auto-vacuum internal data</em> cron) automatically archives a
-<tt class="docutils literal">one_time_delivery</tt> contact once every sale order it ships to is
-finished: all related stock pickings have reached a terminal state
-(<tt class="docutils literal">done</tt> or <tt class="docutils literal">cancel</tt>). This covers delivered orders as well as fully
-cancelled ones. Contacts that are still awaiting a delivery, or that are
-not linked to any order, are left untouched. Archiving is reversible and
-preserves the order history.</p>
+<p>One-time delivery contacts are temporary by nature. As soon as the sale
+order is confirmed, its <tt class="docutils literal">one_time_delivery</tt> shipping contact is
+automatically archived so it stops cluttering the address book.
+Archiving is reversible and the contact remains readable on the related
+stock pickings and order history.</p>
 </div>
 </div>
 <div class="section" id="bug-tracker">
