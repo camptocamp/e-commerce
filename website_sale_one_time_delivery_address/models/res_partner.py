@@ -24,11 +24,14 @@ class ResPartner(models.Model):
     )
 
     def _get_delivery_address_domain(self):
-        """Extend the delivery address domain to also list one_time_delivery
-        contacts alongside the standard 'delivery'/'other' addresses."""
-        return super()._get_delivery_address_domain() | Domain(
-            [
-                ("commercial_partner_id", "in", self.commercial_partner_id.ids),
-                ("type", "=", "one_time_delivery"),
-            ]
-        )
+        # Extend the delivery address domain to also list one_time_delivery
+        # contacts alongside the standard 'delivery'/'other' addresses.
+        res = super()._get_delivery_address_domain()
+        if all(partner.allow_dropship for partner in self):
+            res |= Domain(
+                [
+                    ("commercial_partner_id", "in", self.commercial_partner_id.ids),
+                    ("type", "=", "one_time_delivery"),
+                ]
+            )
+        return res
