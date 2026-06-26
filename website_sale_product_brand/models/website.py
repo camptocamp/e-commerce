@@ -1,11 +1,21 @@
 # Copyright 2026 Camptocamp
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from odoo import models
+from odoo import fields, models
 
 
 class Website(models.Model):
     _inherit = "website"
+
+    brand_filter_display_mode = fields.Selection(
+        selection=[
+            ("list", "Full list"),
+            ("limited", "Limited list"),
+            ("letters", "Alphabetical accordion"),
+        ],
+        default="list",
+        required=True,
+    )
 
     def _search_get_details(self, search_type, order, options):
         result = super()._search_get_details(search_type, order, options)
