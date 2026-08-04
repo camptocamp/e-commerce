@@ -14,6 +14,7 @@ class TestProductTemplatePackagingPrices(WebsiteSaleCommon):
         super().setUpClass()
         # ``_has_multiple_uoms`` is only true when the packagings feature is on.
         cls.env.ref("base.group_user").implied_ids |= cls.env.ref("uom.group_uom")
+        cls._enable_pricelists()
 
         cls.product_tmpl = cls.env["product.template"].create(
             {
