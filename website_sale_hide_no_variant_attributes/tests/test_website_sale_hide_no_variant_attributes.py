@@ -71,6 +71,77 @@ class TestWebsiteSaleHideNoVariantAttributes(TransactionCase):
         ]
         cls.website = cls.env["website"].get_current_website()
 
+    @classmethod
+    def _create_product_with_blocking_informational_values(cls):
+        """Return a product whose informational values exclude every variant.
+
+        Each informational line has a single value, which applies to one
+        variant only: "Cotton" is excluded for "Large", "Glossy" for "Small".
+        Every combination must pick both values, so none is possible when the
+        informational attributes are taken into account.
+        """
+        finish_attribute = cls.env["product.attribute"].create(
+            {
+                "name": "Test Finish",
+                "create_variant": "no_variant",
+                "value_ids": [Command.create({"name": "Glossy"})],
+            }
+        )
+        cotton = cls.informational_attribute.value_ids.filtered(
+            lambda value: value.name == "Cotton"
+        )
+        product = cls.env["product.template"].create(
+            {
+                "name": "Test product with blocking informational values",
+                "attribute_line_ids": [
+                    Command.create(
+                        {
+                            "attribute_id": cls.variant_attribute.id,
+                            "value_ids": [
+                                Command.set(cls.variant_attribute.value_ids.ids)
+                            ],
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "attribute_id": cls.informational_attribute.id,
+                            "value_ids": [Command.set(cotton.ids)],
+                        }
+                    ),
+                    Command.create(
+                        {
+                            "attribute_id": finish_attribute.id,
+                            "value_ids": [Command.set(finish_attribute.value_ids.ids)],
+                        }
+                    ),
+                ],
+            }
+        )
+        ptavs = product.attribute_line_ids.product_template_value_ids
+        size_ptavs = ptavs.filtered(
+            lambda ptav: ptav.attribute_id == cls.variant_attribute
+        )
+        for informational_name, size_name in (("Cotton", "Large"), ("Glossy", "Small")):
+            ptavs.filtered(lambda ptav, n=informational_name: ptav.name == n).write(
+                {
+                    "exclude_for": [
+                        Command.create(
+                            {
+                                "product_tmpl_id": product.id,
+                                "value_ids": [
+                                    Command.link(
+                                        size_ptavs.filtered(
+                                            lambda ptav, n=size_name: ptav.name == n
+                                        ).id
+                                    )
+                                ],
+                            }
+                        )
+                    ]
+                }
+            )
+        return product
+
     def test_exclusions_ignore_informational_attribute(self):
         exclusions = self.product._get_attribute_exclusions()["exclusions"]
         self.assertIn(self.informational_ptav_wool.id, exclusions)
@@ -106,3 +177,25 @@ class TestWebsiteSaleHideNoVariantAttributes(TransactionCase):
                 combination=combination
             )
         self.assertTrue(combination_info["is_combination_possible"])
+
+    def test_add_to_cart_possible_despite_informational_exclusions(self):
+        product = self._create_product_with_blocking_informational_values()
+        # Standard behavior: no combination is possible at all.
+        self.assertFalse(product._get_first_possible_combination())
+        self.assertTrue(product._is_add_to_cart_possible())
+
+    def test_add_to_cart_not_possible_without_any_possible_variant(self):
+        product = self._create_product_with_blocking_informational_values()
+        # A plain write, unlike `action_archive`, keeps the template active.
+        product.product_variant_ids.write({"active": False})
+        self.assertTrue(product.active)
+        self.assertFalse(product._is_add_to_cart_possible())
+
+    def test_combination_info_defaults_to_first_variant(self):
+        # Mimics the first render of the product page, which has neither a
+        # combination nor a variant to start from.
+        product = self._create_product_with_blocking_informational_values()
+        with MockRequest(self.env, website=self.website):
+            combination_info = product._get_combination_info()
+        self.assertTrue(combination_info["is_combination_possible"])
+        self.assertIn(combination_info["product_id"], product.product_variant_ids.ids)
