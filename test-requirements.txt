@@ -1,1 +1,2 @@
 odoo-addon-sale_product_multiple_qty @ git+https://github.com/OCA/sale-workflow.git@refs/pull/4143/head#subdirectory=sale_product_multiple_qty
+odoo-addon-product_pricelist_item_uom @ git+https://github.com/OCA/product-attribute.git@refs/pull/2364/head#subdirectory=product_pricelist_item_uom
